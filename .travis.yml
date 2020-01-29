@@ -1,0 +1,26 @@
+language: generic
+
+sudo: required  # required for docker
+services:
+    - docker  # install a copy of docker
+
+before_install:
+    - docker build -t ${DOCKER_ID}/fib-react-docker-nginx-postgres-redis -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true ${DOCKER_ID}/fib-react-docker-nginx-postgres-redis npm run test -- --coverage
+
+after_success:
+    # building production docker images and the push them to docker hub
+    - docker build -t ${DOCKER_ID}/multi-client ./client
+    - docker build -t ${DOCKER_ID}/multi-nginx ./nginx
+    - docker build -t ${DOCKER_ID}/multi-server ./server
+    - docker build -t ${DOCKER_ID}/multi-worker ./worker
+    # Login into the Docker CLI
+    # Get docker password and pipe it to the next command
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Take the images and push them to docker hub
+    - docker push ${DOCKER_ID}/multi-client
+    - docker push ${DOCKER_ID}/multi-nginx
+    - docker push ${DOCKER_ID}/multi-server
+    - docker push ${DOCKER_ID}/multi-worker
