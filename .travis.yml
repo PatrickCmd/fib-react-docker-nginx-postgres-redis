@@ -24,3 +24,18 @@ after_success:
     - docker push ${DOCKER_ID}/multi-nginx
     - docker push ${DOCKER_ID}/multi-server
     - docker push ${DOCKER_ID}/multi-worker
+
+# deploy to AWS Elastic Beanstalk with multi docker images with Dockerrun.aws.json
+deploy:
+    # edge: true
+    provider: elasticbeanstalk
+    region: "us-east-2"
+    app: "multi-docker"
+    env: "MultiDocker-env"
+    bucket_name: "elasticbeanstalk-us-east-2-470656852239"   # s3 bucket name from s3 storage services
+    bucket_path: "multi-docker"
+    on:
+        branch: master  # every time code is pushed or merged to the master branch
+    access_key_id: $AWS_ACCESS_KEY   # AWS Access key for IAM user for the project
+    secret_access_key:
+        secure: "$AWS_SECRET_KEY"    # AWS secret key for IAM user for the project
